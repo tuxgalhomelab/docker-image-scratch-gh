@@ -1,0 +1,50 @@
+---
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04-arm
+    timeout-minutes: 720
+
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch full annotated tags metadata
+        run: git fetch --force --tags
+
+      - name: Show Docker version
+        run: |
+          docker version
+          docker info
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image locally
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: tuxgalhomelab/scratch-gh:test
